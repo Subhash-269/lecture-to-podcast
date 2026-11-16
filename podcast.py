@@ -100,6 +100,8 @@ def parse_script(path: Path, speakers: dict, aliases: dict):
         line = raw.strip()
         if not line:
             continue
+        if line.startswith("#"):
+            continue                      # comment
         if is_noise(line):
             skipped.append((lineno, line))
             continue
