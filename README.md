@@ -80,6 +80,27 @@ settings. Edit a line and re-run: only that turn is re-rendered.
 fields of the config. It is a dry run unless you pass `--confirm`, because
 Spotify episodes have no draft state and their metadata can't be edited.
 
+### Installing save-to-spotify
+
+The CLI is Spotify's own tool and isn't bundled here. Get it from
+[spotify/save-to-spotify releases](https://github.com/spotify/save-to-spotify/releases).
+
+- **macOS / Linux**: `curl -fsSL https://saveto.spotify.com/install.sh | bash`
+- **Windows**: download the `windows` `.exe` from the releases page, rename it
+  to `save-to-spotify.exe`, and either put it on your `PATH` or save it as
+  `%USERPROFILE%\tools\save-to-spotify\save-to-spotify.exe`.
+
+`publish.py` looks for the CLI in this order: `cli_path` in your config, then
+`PATH`, then `~/tools/save-to-spotify/save-to-spotify.exe`.
+
+Sign in once before publishing:
+
+```
+save-to-spotify auth login
+```
+
+The login token is saved to `~/.config/save-to-spotify/token.json`, outside the repo.
+
 **Only publish content you have the rights to.** Lecture recordings, slides
 and course materials usually belong to the instructor or institution; get
 permission before sharing anything derived from them.
