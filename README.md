@@ -66,7 +66,7 @@ settings. Edit a line and re-run: only that turn is re-rendered.
 
 ## Voices
 
-- **Kokoro**: pick a built-in voice per speaker (`af_heart`, `af_bella`, `am_michael`,
+- **Kokoro**: run `python voices.py` to hear a sampler (`out/voice_sampler.wav`), then pick a built-in voice per speaker (`af_heart`, `af_bella`, `am_michael`,
   `am_fenrir`, `bf_emma`, `bm_george`, ...). See the
   [Kokoro voice list](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md).
 - **Chatterbox**: put an 8 to 15 s clean clip per speaker in `voices/` and point
