@@ -27,7 +27,8 @@ python -m venv .venv
 pip install -r requirements-kokoro.txt        # CPU, small
 # and/or
 pip install -r requirements-chatterbox.txt    # for an NVIDIA GPU, install a CUDA torch first:
-#   pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124
+#   pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+# Tip: keep Chatterbox in its own venv (e.g. .venv-cb); it pins its own torch version.
 
 cp podcast.config.example.json podcast.config.json
 ```
@@ -46,6 +47,11 @@ JORDAN: [pause] Okay, where do we start?
 
 - Labels map to speakers in `speakers`, or through `aliases` (`"HOST A": "Maya"`).
 - Lines starting with `#` are ignored. Anything else that isn't dialogue is listed by `--validate`.
+- A line ending in `--` is cut off and the other host answers right away. Short reactions
+  ("Mm-hm.", "Yeah.") work best as their own turns. `[over]` plays a reaction under the
+  previous line instead, but only if you set `"pauses_ms": {"overlap": true}` (off by default).
+- Pauses vary naturally (quicker after a question, a beat before a new idea) and speaking
+  speed varies slightly per line; both are deterministic, so re-renders are identical.
 - Tags: `excited`, `enthusiastic`, `happy`, `amused`, `laughs`, `surprised`, `curious`,
   `thoughtful`, `calm`, `serious`, `sad`, `whispers` adjust pace and intensity; `pause` adds
   a beat before the turn. Backends drop tags they can't honour, so one script works everywhere.

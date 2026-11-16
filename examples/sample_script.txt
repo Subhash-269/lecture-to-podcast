@@ -1,11 +1,13 @@
-# Sample script: two hosts, expression tags in [brackets].
-# Lines starting with # are ignored. Unlabelled lines join the turn above.
+# Sample script: two hosts. Tags go in [brackets] at the start of a line.
+# [over] plays a short reaction softly under the end of the previous line.
+# A line ending in -- is cut off, and the next speaker jumps straight in.
 
-MAYA: [excited] Welcome back to the show! Today we're talking about something you use every single day without noticing.
-JORDAN: [curious] Let me guess. The thing that decides what I watch next?
-MAYA: [laughs] Exactly. Recommender systems.
-JORDAN: [thoughtful] Okay, so at the simplest level, what is one?
-MAYA: It's a system that predicts what you'll like, based on what you and people like you have liked before.
-That second part, people like you, is where it gets interesting.
-JORDAN: [surprised] Wait, so it's not just about me?
-MAYA: [calm] Not at all. [pause] And that's the idea we'll unpack today.
+MAYA: [excited] Okay, welcome back! Today's topic is something you use, like, every single day.
+JORDAN: Let me guess. The thing that picks what I watch next?
+MAYA: Ha! Yep. Recommender systems.
+JORDAN: So at the simplest level, what is one? Is it just--
+MAYA: A guess. A really educated guess about what you'll like next.
+JORDAN: [over] Mm-hm.
+MAYA: Based on what you liked, and, this is the fun part, what people like you liked.
+JORDAN: [surprised] Wait, so it's not even just about me?
+MAYA: [calm] Nope. [pause] And that's what we're unpacking today.

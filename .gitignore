@@ -22,4 +22,5 @@ content/
 __pycache__/
 *.pyc
 .venv/
+.venv-cb/
 *.orig

@@ -162,37 +162,96 @@ def render(cfg: dict, base: Path, turns, backend_name: str):
     cache = base / ".cache" / backend_name
     cache.mkdir(parents=True, exist_ok=True)
 
-    pauses = {"turn": 280, "same_speaker": 120, "pause_tag": 650}
+    pauses = {"turn": 300, "same_speaker": 120, "after_question": 170,
+              "interrupted": 60, "backchannel": 140, "pause_tag": 650,
+              "jitter": 0.4, "speed_jitter": 0.04, "overlap": False}
     pauses.update(cfg["pauses_ms"])
 
-    pieces, prev, sr = [], None, backend.sample_rate
+    clips = []            # (start_sample, audio, gain)
+    cursor = 0            # where the next normal turn may start
+    prev = None           # (speaker, text, start, end)
+    sr = backend.sample_rate
     for i, (speaker, text) in enumerate(turns, 1):
+        tags, _ = split_tags(text)
         spk = speaker_settings(cfg, base, speaker, backend_name)
-        wav_path = cache / ("%s.wav" % turn_key(backend_name, spk, text))
+        if "speed" in spk or backend_name == "kokoro":
+            spk["speed"] = round(float(spk.get("speed", 1.0)) *
+                                 (1 + pauses["speed_jitter"] * jitter(text, "speed")), 3)
+        speak = speakable(text)
+        wav_path = cache / ("%s.wav" % turn_key(backend_name, spk, speak))
 
         if wav_path.exists() and wav_path.stat().st_size > 0:
             audio, sr = sf.read(wav_path, dtype="float32")
             state = "cached"
         else:
-            audio = np.asarray(backend.synthesize(text, spk), dtype=np.float32).reshape(-1)
+            audio = np.asarray(backend.synthesize(speak, spk), dtype=np.float32).reshape(-1)
             sr = backend.sample_rate
             sf.write(wav_path, audio, sr)
             state = "rendered"
+        audio = trim(np.asarray(audio, dtype=np.float32).reshape(-1), sr)
         print("  [%3d/%d] %-8s %-10s %s" % (i, len(turns), state, speaker, text[:60]),
               flush=True)
 
-        tags, _ = split_tags(text)
-        if prev is not None:
-            gap = pauses["same_speaker"] if prev == speaker else pauses["turn"]
+        ms = lambda x: int(sr * x / 1000)
+        if pauses["overlap"] and "over" in tags and prev is not None and prev[0] != speaker:
+            # A listener's "mm-hm" under the end of the other speaker's line.
+            p_start, p_end = prev[2], prev[3]
+            start = max(p_start, p_end - len(audio) - ms(250 + 150 * jitter(text, "over")))
+            clips.append((start, audio, 0.55))
+            cursor = max(cursor, start + len(audio) - ms(80))
+            continue
+
+        if prev is None:
+            start = 0
+        else:
+            p_text = prev[1].rstrip()
+            if "over" in tags:
+                gap = pauses["backchannel"]
+            elif p_text.endswith("--"):
+                gap = pauses["interrupted"]
+            elif p_text.endswith("?"):
+                gap = pauses["after_question"]
+            elif prev[0] == speaker:
+                gap = pauses["same_speaker"]
+            else:
+                gap = pauses["turn"]
+            if gap > 0:
+                gap *= 1 + pauses["jitter"] * jitter(text, "gap")
             if "pause" in tags:
                 gap += pauses["pause_tag"]
-            pieces.append(silence(gap, sr))
-        pieces.append(np.asarray(audio, dtype=np.float32).reshape(-1))
-        prev = speaker
+            start = max(0, cursor + ms(gap))
+        clips.append((start, audio, 1.0))
+        cursor = start + len(audio)
+        prev = (speaker, text, start, cursor)
 
-    out = np.concatenate(pieces)
+    total = max(s + len(a) for s, a, _ in clips)
+    out = np.zeros(total, dtype=np.float32)
+    for s, a, g in clips:
+        out[s:s + len(a)] += a * g
     peak = float(np.max(np.abs(out))) or 1.0
     return (out / peak * 0.89).astype(np.float32), sr   # normalise to about -1 dBFS
+
+
+def jitter(text: str, salt: str) -> float:
+    """Deterministic value in [-1, 1] per line, so re-renders are identical."""
+    h = hashlib.sha1((salt + "|" + text).encode("utf-8")).digest()
+    return h[0] / 127.5 - 1.0
+
+
+def speakable(text: str) -> str:
+    """Text as the model should say it: cut-offs and dashes become pauses."""
+    t = re.sub(r"\s*--\s*$", "", text.rstrip())       # trailing cut-off: just stop
+    t = re.sub(r"\s*--\s*", ", ", t)                   # mid-line dash: a comma pause
+    return t
+
+
+def trim(audio: np.ndarray, sr: int, thresh: float = 0.01, keep_ms: int = 30) -> np.ndarray:
+    """Strip the model's own leading/trailing silence so our gaps control timing."""
+    loud = np.flatnonzero(np.abs(audio) > thresh)
+    if not len(loud):
+        return audio
+    pad = int(sr * keep_ms / 1000)
+    return audio[max(0, loud[0] - pad): loud[-1] + pad]
 
 
 def save(audio: np.ndarray, sr: int, out: Path) -> Path:
