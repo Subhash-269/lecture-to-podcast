@@ -1,0 +1,38 @@
+{
+  "script_path": "examples/sample_script.txt",
+  "output_path": "out/episode.mp3",
+  "backend": "kokoro",
+
+  "speakers": {
+    "Maya": {
+      "kokoro":     { "voice": "af_heart", "speed": 1.0 },
+      "chatterbox": { "reference": "voices/maya.wav", "exaggeration": 0.55 }
+    },
+    "Jordan": {
+      "kokoro":     { "voice": "am_michael", "speed": 1.0 },
+      "chatterbox": { "reference": "voices/jordan.wav", "exaggeration": 0.5 }
+    }
+  },
+
+  "aliases": { "HOST A": "Maya", "HOST B": "Jordan" },
+
+  "pauses_ms": { "turn": 280, "same_speaker": 120, "pause_tag": 650 },
+
+  "backend_options": {
+    "kokoro":     { "lang_code": "a" },
+    "chatterbox": { "device": null, "max_chars": 280, "seed": 1234 }
+  },
+
+  "show": {
+    "title": "My Study Podcast",
+    "summary": "Two hosts unpack one topic per episode.",
+    "language": "en",
+    "image": ""
+  },
+  "episode": {
+    "title": "Episode 1 - Getting Started",
+    "summary": "A short sample episode.",
+    "image": ""
+  },
+  "cli_path": ""
+}

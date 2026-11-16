@@ -1,0 +1,25 @@
+# Your own config, scripts and generated audio stay local
+podcast.config.json
+*.mine
+out/
+.cache/
+*.mp3
+*.wav
+*.m4a
+*.vtt
+!examples/*.txt
+
+# Content you bring (lectures, transcripts, scripts derived from them)
+content/
+*-podcast-clean.txt
+*_podcast_script.md
+
+# Secrets
+.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.orig
